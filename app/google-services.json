@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "593021733422",
+    "project_id": "puissance111",
+    "storage_bucket": "puissance111.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593021733422:android:3a99a3e31b271cd1c0edbf",
+        "android_client_info": {
+          "package_name": "com.example.puissance111"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "593021733422-7jvtshl00d2oknootclj26m2jvglbh0a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkwaGzJvPa5HKUSLrFRThoVI-J7ji3WeI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "593021733422-7jvtshl00d2oknootclj26m2jvglbh0a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
