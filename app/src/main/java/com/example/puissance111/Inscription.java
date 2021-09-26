@@ -50,6 +50,7 @@ public class Inscription extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mAuth = FirebaseAuth.getInstance();
 
         editNom = findViewById(R.id.editNom);
         editPrenom = findViewById(R.id.editPrenom);
@@ -59,7 +60,7 @@ public class Inscription extends AppCompatActivity {
         bouton_inscrire = findViewById(R.id.buttonInscrire);
         bouton_inscrire.setOnClickListener(bouton_inscrire_listener);
 
-        mAuth = FirebaseAuth.getInstance();
+
 
 
     }
