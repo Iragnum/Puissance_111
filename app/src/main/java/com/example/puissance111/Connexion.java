@@ -25,12 +25,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 
-public class Connexion<mGoogleSignInClient> extends AppCompatActivity {
+public class Connexion extends AppCompatActivity {
 
     EditText editPassword, editMail;
     Button bouton_connexion, bouton_google;
 
-    private static final String TAG = "GoogleActivity";
     private static final int RC_SIGN_IN = 9001;
     private GoogleSignInClient mGoogleSignInClient;
 
@@ -48,7 +47,12 @@ public class Connexion<mGoogleSignInClient> extends AppCompatActivity {
                 editMail.setError("Il faut renseigner l'adresse e-mail");
                 return;
             }
-            signIn(email,password);
+            if (TextUtils.isEmpty(password))
+            {
+                editPassword.setError("Il faut renseigner le mot de passe");
+                return;
+            }
+            signInEmail(email,password);
         }
     };
 
@@ -56,8 +60,7 @@ public class Connexion<mGoogleSignInClient> extends AppCompatActivity {
 
         public void onClick(View v) {
 
-            Intent sign = mGoogleSignInClient.getSignInIntent();
-            startActivityForResult(sign,RC_SIGN_IN);
+            signInGoogle();
         }
     };
 
@@ -65,16 +68,16 @@ public class Connexion<mGoogleSignInClient> extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_connexion);
+
         // Configure Google Sign In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
         // End Configure Google Sign In
-
         mAuth = FirebaseAuth.getInstance();
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_connexion);
 
         editMail = findViewById(R.id.editMail);
         editPassword = findViewById(R.id.editPassword);
@@ -94,6 +97,24 @@ public class Connexion<mGoogleSignInClient> extends AppCompatActivity {
         }
     }
 
+    private void firebaseAuthWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+
+                        if (task.isSuccessful()) {
+                            Toast.makeText(Connexion.this, "Connecté", Toast.LENGTH_SHORT).show();
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            updateUI(user);
+                        } else {
+                            Toast.makeText(Connexion.this, "NAZE", Toast.LENGTH_SHORT).show();
+                            updateUI(null);
+                        }
+                    }
+                });
+    }
 
 
     @Override
@@ -105,38 +126,21 @@ public class Connexion<mGoogleSignInClient> extends AppCompatActivity {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 // Google Sign In was successful, authenticate with Firebase
+
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d(TAG, "firebaseAuthWithGoogle:" + account.getId());
                 firebaseAuthWithGoogle(account.getIdToken());
+
             } catch (ApiException e) {
-                // Google Sign In failed, update UI appropriately
-                Log.w(TAG, "Google sign in failed", e);
+                Log.e("Connexion",e.toString());
+                Toast.makeText(Connexion.this, "Erreur - La connexion avec google a échoué.", Toast.LENGTH_SHORT).show();
+
             }
         }
     }
 
-    private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            updateUI(null);
-                        }
-                    }
-                });
-    }
 
 
-    private void signIn(String email, String password) {
+    private void signInEmail (String email, String password) {
         // [START sign_in_with_email]
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -159,11 +163,24 @@ public class Connexion<mGoogleSignInClient> extends AppCompatActivity {
         // [END sign_in_with_email]
     }
 
+    // [START signin]
+    private void signInGoogle() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+    // [END signin]
+
+
     private void reload() {
 
     }
 
-    private void updateUI(FirebaseUser user) {
+    private void updateUI(FirebaseUser user) { //pour basculer dans la nouvelle activité
+        System.out.println(mAuth.getCurrentUser().getEmail());
+        System.out.println("test"+user.getUid());
+        System.out.println("email "+user.getEmail());
 
     }
+
+    // Deconnexion : FirebaseAuth.getInstance().signOut(this);
 }

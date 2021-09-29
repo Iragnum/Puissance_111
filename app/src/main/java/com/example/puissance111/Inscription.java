@@ -13,17 +13,24 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Inscription extends AppCompatActivity {
 
     EditText editNom, editPrenom, editMdp, editEmail, editDate;
     Button bouton_inscrire;
-    private static final String TAG = "EmailPassword";
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
 
     private View.OnClickListener bouton_inscrire_listener = new View.OnClickListener() {
@@ -40,6 +47,18 @@ public class Inscription extends AppCompatActivity {
                 editEmail.setError("Il faut renseigner l'adresse e-mail");
                 return;
             }
+
+            if (TextUtils.isEmpty(password))
+            {
+                editMdp.setError("Il faut renseigner le mot de passe");
+                return;
+            }
+
+            if (password.length() < 6)
+            {
+                editMdp.setError("Il faut mettre au moins 6 caractères");
+                return;
+            }
             createAccount(email,password);
         }
     };
@@ -51,6 +70,7 @@ public class Inscription extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         editNom = findViewById(R.id.editNom);
         editPrenom = findViewById(R.id.editPrenom);
@@ -72,15 +92,12 @@ public class Inscription extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "createUserWithEmail:success");
                             Toast.makeText(Inscription.this, "Inscription reussie", Toast.LENGTH_SHORT).show();
-                            //FirebaseUser user = mAuth.getCurrentUser();
-                            //updateUI(user);
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
-                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
                             Toast.makeText(Inscription.this, "Erreur - Le compte n'a pas été créé", Toast.LENGTH_SHORT).show();
-                            //updateUI(null);
                         }
                     }
                 });
@@ -89,6 +106,30 @@ public class Inscription extends AppCompatActivity {
 
 
     private void updateUI(FirebaseUser user) {
+        Map<String, Object> utilisateur = new HashMap<>();
+        utilisateur.put("nom", editNom.getText().toString());
+        utilisateur.put("prenom", editPrenom.getText().toString());
+        utilisateur.put("email", editEmail.getText().toString());
+        utilisateur.put("date de naissance", editDate.getText().toString());     //new Timestamp(new Date())
+        utilisateur.put("score", 0);
+        utilisateur.put("rang", 1);
+
+        db.collection("utilisateurs")
+                .add(utilisateur)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Log.e("Success","C'est good");
+            }
+            })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Fail","C'est pas good");
+                    }
+                });
+
+
 
     }
 
